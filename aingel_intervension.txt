@@ -1,0 +1,68 @@
+[ME] Hi. I am working on modelling the superiority of wine ratings using the Bayesian Hierarchical Logistic Regression approach. Please help me out with this. Following is some context.
+
+Let y_ik refer to data point i belonging to group k.
+
+Let \beta_0k refer to random effects intercepts.
+
+The hierarchical logistic regression model involves taking the standard logistic regression model and varying the \beta_0 intercept by group as follows.
+
+log(\theta_ik/(1-\theta_ik)) = \beta_0k, \beta_1 x_i k_ik1 + ... + \beta_p x_i k_p
+
+Thus, the idea is for the base line log odds corresponding to an observation to depend on its group.
+
+An assumption here is that random effects intercepts \beta_0k are normally distributed with mean \beta_0 and \variance \sigma_b^2. This introduces partial pooling that can be used to model hierachy.
+
+The generative model would then, look as follows.
+
+y_ik ~ Bernoulli(\theta_ik) where i = 1, ..., n
+
+\theta_i = 1/(1 + e^{\beta^T x_1})
+
+\beta_0k ~ N(\beta_0, \signma_b^2)
+
+Now, the joint distribution for y and \beta_01, ..., \beta_0K is of the following form assuming that \beta_0, ..., \beta_p and \sigma_b are known.
+
+p(y, \beta_01, ..., \beta_0K|x, \beta_0, ..., \beta_p, \sigma_b) = \prod_{k=1}^K \prod_{i=1}^{n_k} p(y_ik|\x_ik, \beta_0k, \beta_1, ..., \beta_p)p(\beta_0k|\beta_0,\sigma_b)
+
+The full posterior can now be constructed by adding prior terms for \beta_0, ..., \beta_p and \sigma_b.
+
+Normal priors are assumed for the population-level coefficients \beta_0, \beta_1, ..., \beta_p. That is, \beta_j ~ N(B_0, \sigma_0^2) for each j.
+
+Please explain the above in clear and simple terms. What is going on? Why? How?
+
+
+
+[ME] Following is a description of a Bayesian Hierarchical Logistic Regression model that I've designed. Please tell me if this sounds correct.
+
+```
+Subscripts:
+
+Give below is some important notation to bear in mind w.r.t subscripts in order to understand the model definition that follows. Because of the hierarchical nature of this model which also involves multiple predictor variables in a linear combination to explain each response variable, the subscripts are especially important, but may get confusing. Thus, this prelude before diving into expressions that define the model exists to make the purpose of each subscript clear.
+# k=1,…,K refer to groups that are present in the data set and are being considered in the model. Here, because the grouping variable is wine variety and there are 35 different varieties of wine in the data set, K=35.
+# i=1,…,n refer to data points that are present within a group. For example, for the “Chardonnay” variety of wine in the data set, there are 417 data points (wines). Thus, w.r.t the “Chardonnay” group, n=417.
+# p=1,…,P refer to predictor variables used to estimate each instance of the response variable. In the model considered here, the 12 predictor variables are  Crisp, Dry, Finish, Firm, Fresh, Fruit, Full, Round, Rich, Soft, Sweet, and price. Thus, P=12.
+
+The Model:
+
+The response variable y_ik (the variable we want to model) is superior_rating. This is a binary variable such that when it is 1, this means that the corresponding wine was assigned a rating of ≥90 points. Consequently, superior_rating=0 implies that the wine received a rating <90 points.
+
+Since here, the response variable y_ik∈{0,1}, meaning that outcomes are discrete and binary, logistic regression would be a better choice for a data model than linear regression because the latter predicts continuous values while the former deals specifically with binary outcomes. Moreover, a linear regression model would try to fit a straight line to the data, which likely wouldn’t accurately represent the binary nature of the response variable (superior rating or not). In contrast, a logistic regression model uses a sigmoid function to transform the linear combination of predictors into a probability between 0 and 1 which can then be interpreted as the chance of observing a superior rating (superior_rating=1) for a particular wine given its characteristics x. 
+The data model is assumed to be y_ik~Bernoulli(θ_ik) wherein, a wine’s rating being superior (superior_rating=1) is a success, and it receiving a lower rating (superior_rating=0) is seen as failure.
+
+The log-odds of a success (a wine being deemed superior), is modelled as a linear function of the predictor variables and the grouping term to obtain a logistic regression model as follows wherein β_1,…,β_p are the coefficients associated with each predictor variable that explains the corresponding response variable instance. 
+log〖(θ_ik/(1-θ_ik ))=β_0+β_0k+β_1 x_ik1+⋯+β_p x_ikp 〗
+
+Intercepts β_0+β_0k are special because they represent how, assuming a certain global baseline β_0 log odds of wines being rated as superior, it varies from group to group as captured by the Random Effects (RE) intercept β_0k.
+
+The transformation function here, is ϕ(x_ik )=log(θ_ik/(1-θ_ik )). Thus, given covariates x_ik and an associated vector of coefficients β, y_ik can be obtained as E[y_ik ]=θ_ik=ϕ^(-1) (x_ik )=1/(1+e^(〖-β〗^T x_ik ) ), meaning that E[y_ik ] can be used to predict the value of y_ik.
+
+The RE intercept is assumed to be normally distributed as follows. It is the inclusion of this RE term, that makes this a special kind of hierarchical model called a Random Effects Hierarchical Model. Here, β_0k is the difference between baseline log-odds and that of each group. Thus, because the RE intercept is simply variance from a fixed term, the mean of the normal distribution that is used to model it, is set as 0.
+β_0k~N(0,σ_b^2 )
+
+Further, priors must also be chosen for population level coefficients β_0,β_1,…,β_p which, in accordance with known conjugate priors, can be assumed to be a normal distribution. This may be expressed as follows where subscript j refers to each value ∈{0,1,…,p}.
+β_j~N(B_0,σ_0^2)
+```
+
+
+
+
