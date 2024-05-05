@@ -1,0 +1,59 @@
+> prior_summary(fit)
+                prior     class                                coef   group resp dpar nlpar lb ub       source
+        normal(0, 10)         b                                                                           user
+        normal(0, 10)         b                             alcohol                               (vectorized)
+        normal(0, 10)         b                         price_log10                               (vectorized)
+        normal(0, 10)         b                                Rich                               (vectorized)
+        normal(0, 10)         b                              tannin                               (vectorized)
+        normal(0, 10)         b                   tfidf_tsne_1_norm                               (vectorized)
+        normal(0, 10)         b tfidf_tsne_1_norm:tfidf_tsne_2_norm                               (vectorized)
+        normal(0, 10)         b                   tfidf_tsne_2_norm                               (vectorized)
+ student_t(3, 0, 2.5) Intercept                                                                        default
+ student_t(3, 0, 2.5)        sd                                                              0         default
+ student_t(3, 0, 2.5)        sd                                     variety                  0    (vectorized)
+ student_t(3, 0, 2.5)        sd                           Intercept variety                  0    (vectorized)
+ 
+> summary(fit)
+ Family: bernoulli 
+  Links: mu = logit 
+Formula: superior_rating ~ 1 + price_log10 + Rich + tannin + alcohol + tfidf_tsne_1_norm * tfidf_tsne_2_norm + (1 | variety) 
+   Data: wine_reviews (Number of observations: 2500) 
+  Draws: 4 chains, each with iter = 2000; warmup = 1000; thin = 1;
+         total post-warmup draws = 4000
+
+Multilevel Hyperparameters:
+~variety (Number of levels: 35) 
+              Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+sd(Intercept)     0.73      0.16     0.48     1.09 1.00     1072     1630
+
+Regression Coefficients:
+                                    Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+Intercept                             -12.76      0.78   -14.30   -11.23 1.00     3327     3134
+price_log10                             5.63      0.28     5.08     6.19 1.00     3924     2924
+Rich                                    0.83      0.12     0.59     1.06 1.00     4334     2747
+tannin                                  2.24      0.69     0.92     3.58 1.00     4741     3080
+alcohol                                 2.72      0.57     1.59     3.83 1.00     4981     3197
+tfidf_tsne_1_norm                       0.57      0.82    -1.08     2.16 1.00     2202     2447
+tfidf_tsne_2_norm                       3.01      0.77     1.50     4.52 1.00     2160     2616
+tfidf_tsne_1_norm:tfidf_tsne_2_norm    -1.26      1.46    -4.06     1.58 1.00     2134     2481
+
+Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
+and Tail_ESS are effective sample size measures, and Rhat is the potential
+scale reduction factor on split chains (at convergence, Rhat = 1).
+
+> fit_mat
+# A draws_matrix: 1000 iterations, 4 chains, and 47 variables
+    variable
+draw b_Intercept b_price_log10 b_Rich b_tannin b_alcohol b_tfidf_tsne_1_norm b_tfidf_tsne_2_norm b_tfidf_tsne_1_norm:tfidf_tsne_2_norm
+  1          -13           5.9   0.90      2.0       2.0             -0.1156                 2.5                                 -0.33
+  2          -13           5.4   0.79      2.1       3.2              1.4080                 3.9                                 -2.71
+  3          -13           5.6   0.93      3.1       2.3              0.1446                 3.1                                 -0.22
+  4          -13           5.8   0.96      1.5       2.8              0.8768                 4.2                                 -2.28
+  5          -14           6.2   0.84      3.2       2.5              0.4602                 3.3                                 -1.99
+  6          -13           5.5   0.97      2.0       3.2              0.0064                 2.7                                 -0.13
+  7          -12           5.4   0.85      1.8       3.0              1.0360                 3.0                                 -1.98
+  8          -12           5.8   0.90      2.5       2.2             -0.3055                 2.0                                  0.18
+  9          -12           5.4   0.55      1.8       3.2              0.1056                 3.5                                 -1.25
+  10         -13           6.0   0.79      2.9       2.1              0.3526                 2.5                                 -0.53
+# ... with 3990 more draws, and 39 more variables
+
