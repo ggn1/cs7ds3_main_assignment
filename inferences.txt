@@ -41,19 +41,19 @@ Formula: superior_rating ~ 1 + price_log10 + tannin + alcohol + Rich + price_log
 Multilevel Hyperparameters:
 ~variety (Number of levels: 35) 
               Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-sd(Intercept)     0.64      0.15     0.40     0.98 1.00     1092     1785
+sd(Intercept)     0.65      0.15     0.41     0.98 1.00     1035     2102
 
 Regression Coefficients:
                               Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
-Intercept                       -10.55      1.88   -14.28    -6.95 1.00     1906     2068
-price_log10                       4.96      1.21     2.55     7.28 1.00     1894     2152
-tannin                            2.78      0.73     1.32     4.21 1.00     4388     2980
-alcohol                           2.73      0.61     1.53     3.94 1.00     4230     3058
-Rich                              1.02      0.14     0.74     1.30 1.00     3846     2984
-body                              0.96      2.89    -4.86     6.62 1.00     1885     1763
-tfidf_tsne_1_norm                -4.38      1.70    -7.72    -1.02 1.00     2398     2560
-price_log10:body                 -0.55      1.90    -4.30     3.17 1.00     1874     1719
-price_log10:tfidf_tsne_1_norm     2.66      1.09     0.52     4.80 1.00     2405     2650
+Intercept                       -10.55      1.84   -14.08    -6.88 1.00     2175     2400
+price_log10                       4.96      1.19     2.57     7.27 1.00     2153     2356
+tannin                            2.79      0.72     1.37     4.21 1.00     4438     2946
+alcohol                           2.72      0.60     1.49     3.92 1.00     4403     3301
+Rich                              1.02      0.14     0.75     1.30 1.00     4389     2703
+body                              0.97      2.83    -4.75     6.51 1.00     2312     2370
+tfidf_tsne_1_norm                -4.40      1.77    -7.95    -0.98 1.00     2738     2637
+price_log10:body                 -0.56      1.87    -4.19     3.23 1.00     2266     2652
+price_log10:tfidf_tsne_1_norm     2.67      1.15     0.47     4.96 1.00     2802     2656
 
 Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
 and Tail_ESS are effective sample size measures, and Rhat is the potential
@@ -75,3 +75,14 @@ draw b_Intercept b_price_log10 b_tannin b_alcohol b_Rich b_body b_tfidf_tsne_1_n
   10        -8.5           3.7      2.6       2.1   0.99  -2.45                -3.1              1.735
 # ... with 3990 more draws, and 40 more variables
 
+> neg_eff
+      Rhône-style White Blend Grenache Gewürztraminer Champagne Blend
+0.25                     0.36     0.36           0.39            0.60
+0.5                      0.42     0.44           0.45            0.66
+0.975                    0.66     0.72           0.68            0.89
+
+> pos_eff
+      Chenin Blanc Viognier Cabernet Sauvignon Muscat Bordeaux-style White Blend Marsanne Rosé Melon
+0.25          1.18     1.06               1.26   1.36                       1.21     1.33 1.86  2.53
+0.5           1.43     1.54               1.57   1.65                       1.69     1.89 2.17  3.73
+0.975         2.60     5.90               3.04   2.89                       5.23     6.79 3.38 14.57

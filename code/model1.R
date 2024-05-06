@@ -12,7 +12,12 @@ min_max_normalize <- function(x) {(x-min(x))/(max(x)-min(x))}
 wine_reviews$tfidf_tsne_1_norm <- min_max_normalize(wine_reviews$tfidf_tsne_1)
 wine_reviews$tfidf_tsne_2_norm <- min_max_normalize(wine_reviews$tfidf_tsne_2)
 
+test_data <- read.csv("test_data_processed.csv")
+test_data$tfidf_tsne_1_norm <- min_max_normalize(test_data$tfidf_tsne_1)
+test_data$price_log10 <- log10(test_data$price)
+
 # MODEL DATA
+
 # RESPONSE VARIABLE = "superior_rating"
 # PREDICTOR VARIABLES = [
 #     price_log10, price_log10*tfidf_tsne_1_norm,
@@ -31,6 +36,7 @@ fit <- brm(
 
 # INTERPRET MODEL OVERALL
 prior_summary(fit)
+
 summary(fit)
 
 # INVESTIGATING FIXED EFFECTS
@@ -80,7 +86,7 @@ price_mean <- aggregate(
 plot(
   prob_superior$x, price_mean$x,
   xlab = "Observed probability of wine being rated as superior.", 
-  ylab = "Mean Price", 
+  ylab = "Observed mean price.", 
   col = 0
 )
 text(
@@ -96,7 +102,6 @@ prob_superior_reffect_mean <- tapply(
   variety_r_effect$variety, 
   mean
 )
-
 plot(
   prob_superior_reffect_mean, 
   price_mean$x,
@@ -107,25 +112,52 @@ plot(
 text(
   prob_superior_reffect_mean, 
   price_mean$x,
-  levels(price_mean$Group.1),
+  names(prob_superior_reffect_mean)
 )
 
-# PREDICT
-input_data <- wine_reviews[, c(
-  "price_log10", "tannin", "alcohol", "body",
-  "Rich", "variety", "tfidf_tsne_1_norm")]
-pp <- predict(fit, newdata = input_data)
-boxplot(
-  pp[ ,1] ~ wine_reviews$superior_rating, 
-  ylab = "Predicted probability"
+# VARIETIES WITH STRONGEST EFFECTS
+mat_quantiles <- matrix(unlist
+  (tapply(variety_r_effect$sample, variety_r_effect$variety, quantile, prob = c(0.25, 0.5, 0.975))), 
+  nrow = 3, ncol = 35, 
+  dimnames = list( c("0.25", "0.5", "0.975"), levels(as.factor(wine_reviews$variety)))
 )
+mat_quantiles <- mat_quantiles[, order(mat_quantiles[2, ])]
 
-classification_threshold = 0.5
-cm <- table(
-  pp[ ,1] > classification_threshold, 
-  wine_reviews$superior_rating
-)
+# Below, we exponentiate log values to recover actual random 
+# effect values for further interpretation.
 
+# Focus on varieties with high negative effects (0.975 quantile < 0)
+# such that even at the 97.5th percentile of the distribution, 
+# there's still a chance of a negative effect for these varieties.
+neg_eff <- round(exp(mat_quantiles[, which(mat_quantiles[3, ] < 0)]), 2)
+
+# Focus on varieties with high positive effects (0.25 quantile > 0)
+# such that even at the 2.5th percentile of the distribution, 
+# there's still a chance of a positive effect for these varieties.
+pos_eff <- round(exp(mat_quantiles[, which(mat_quantiles[1, ] > 0)]), 2)
+
+### Examining negative effect varieties.
+varieties_of_interest <- c("Ge", "Gr", "Cd") # Negative effect.
+variety_r_effect_subset <- variety_r_effect[variety_r_effect$variety %in% varieties_of_interest, ]
+ggplot(variety_r_effect_subset, aes(x = variety, y = probability)) +
+  geom_boxplot(aes(fill = variety), show.legend = FALSE) +
+  labs(
+    title = "Probability of Superior Rating by Variety (Negative Effect)",
+    x = "Variety",
+    y = "Probability of Being Rated Superior"
+  )
+
+varieties_of_interest <- c("Re", "Me", "Mn") # Positive effect.
+variety_r_effect_subset <- variety_r_effect[variety_r_effect$variety %in% varieties_of_interest, ]
+ggplot(variety_r_effect_subset, aes(x = variety, y = probability)) +
+  geom_boxplot(aes(fill = variety), show.legend = FALSE) +
+  labs(
+    title = "Probability of Superior Rating by Variety (Positive Effect)",
+    x = "Variety",
+    y = "Probability of Being Rated Superior"
+  )
+
+# PREDICTING
 compute_metrics <- function(cm) {
   ### Function that returns accuracy and F2 Score.
   tp <- cm[2, 2]
@@ -145,17 +177,47 @@ compute_metrics <- function(cm) {
     accuracy = acc,
     f1_score = f1
   )
-  
   return(metrics)
 }
+classification_threshold = 0.5
 
-tp <- cm[2, 2]
-tn <- cm[1, 1]
-fp <- cm[1, 2]
-fn <- cm[1, 1]
-acc <- (tp+tn)/(tp+tn+fp+fn)
-f1 <- tp/(tp + ((1/2)*(tp/fp+fn)))
+# Fit data.
+data_fit <- wine_reviews[, c(
+  "price_log10", "tannin", "alcohol", "body",
+  "Rich", "variety", "tfidf_tsne_1_norm")]
+pp_fit <- predict(fit, newdata = data_fit)
+boxplot(
+  pp_fit[ ,1] ~ wine_reviews$superior_rating, 
+  ylab = "Predicted probability",
+  xlab = "Rated Superior"
+)
+cm_fit <- table(
+  pp_fit[ ,1] > classification_threshold, 
+  wine_reviews$superior_rating
+)
+metrics_fit <- compute_metrics(cm_fit)
+print(paste("(train set) accuracy =", metrics_fit$accuracy))
+print(paste("(train set) F1 =", metrics_fit$f1_score))
+# Accuracy = 0.8128, F1 Score = 0.7437
 
+# Test data.
+data_test <- test_data[, c(
+  "price_log10", "tannin", "alcohol", "body",
+  "Rich", "variety", "tfidf_tsne_1_norm")]
+pp_test <- predict(fit, newdata = data_test)
+boxplot(
+  pp_test[ ,1] ~ test_data$superior_rating, 
+  ylab = "Predicted probability",
+  xlab = "Rated Superior"
+)
+cm_test <- table(
+  pp_test[ ,1] > classification_threshold, 
+  test_data$superior_rating
+)
+metrics_test <- compute_metrics(cm_test)
+print(paste("(test set) accuracy =", metrics_test$accuracy))
+print(paste("(test set) F1 =", metrics_test$f1_score))
+# Accuracy = 0.7325, F1 Score = 0.5664
 
 
 

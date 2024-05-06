@@ -119,8 +119,8 @@ abline(
 # * The distribution of the number of wines per variety appears 
 #   to follow a bell-shaped curve with a positive skew in relation to 
 #   the proportion of wines rated superior within each variety.
-# * For most wine varieties in this data set, between
-#   20% to 60% of the rated wines were rated as being superior.
+# * For most wine varieties in this data set, there is a
+#   20% to 60% chance of wines being rated as being superior.
 # * It appears to be the case that the more no. of data points 
 #   there are for a variety the more likely it is that nearly 
 #   half of those wines get rated superior while the other half
@@ -133,6 +133,7 @@ plot(
   xlab = "Variety",
   ylab = "Mean Price",
   type = "b",
+  col='darkgreen',
   xaxt = "n"  # Hide x-axis labels
 )
 axis(
@@ -140,6 +141,7 @@ axis(
   labels = price_mean_sorted$Group.1, las = 2
 )
 title(main = "Mean Price of Wine Varieties")
+
 variety_count <- as.data.frame(
   table(wine_reviews$variety_c)
 )
@@ -151,6 +153,7 @@ plot(
   xlab = "Variety",
   ylab = "Frequency",
   type = "b",
+  col = 'blue',
   xaxt = "n"  # Hide x-axis labels
 )
 axis(
@@ -205,7 +208,7 @@ layout(1)
 # * Negative indicators = Soft, Crisp, Finish, Fresh, Round.
 # * Possibly useful indicators = Rich, Soft, Crisp.
 
-### Engineered scores.
+### ENGINEERED SCORES
 layout_matrix <- matrix(
   c(1, 2, 3, 4, 5), 
   nrow = 1, byrow = TRUE
@@ -226,6 +229,27 @@ for (characteristic in c(
 layout(1)
 # OBSERVATIONS:
 # * All key wine characteristic scores are normally distributed.
+
+### WINE CHARACTERISTICS CROSS PLOT
+colors <- c("royalblue", "lightgoldenrod1")
+selection <- wine_reviews[, c(
+  "alcohol", "tannin", "sweetness",
+  "body", "acidity", "price_log10"
+)]
+pairs(selection, col=colors[wine_reviews$superior_rating + 1], pch = 19)
+# OBSERVATIONS:
+# * Price log 10 against all others show linear separability.
+# * Body is good predictor. Others not needed as apparently no
+#   useful mutual interactions.
+# * Interaction between price and body is important.
+selection <- wine_reviews[, c(
+  'body', 'tfidf_tsne_1', 'tfidf_tsne_2', "price_log10"
+)]
+pairs(selection, col=colors[wine_reviews$superior_rating + 1], pch = 19)
+# OBSERVATIONS:
+# * From linear separation point of view,
+#   interaction between price and tfidf_tsne_1 
+#   as well as between price and body may be important.
 
 ### SENTIMENT
 sentiment_rounded = round(wine_reviews[, "sentiment"], 1)
@@ -280,7 +304,7 @@ heatmap.2(
 # * Based on the correlation matrix, good choices
 #   for predictor variables when the response variable
 #   is "superior_rating", are "price_log10", "tannin",
-#   "alcohol", "tfidf_tsne_1" and "tfidf_tsne_2".
+#   "alcohol", "body", acidity", "Soft", "Rich" and "tfidf_tsne_2".
 # * As previously suspected, "price_log10" is the 
 #   variable that is most correlated with "superior_rating".
 # * Variables "acidity", "sweetness" and "body" are not 
@@ -289,24 +313,3 @@ heatmap.2(
 # * Only indicator variable considered is "Rich" because it
 #   has minimal correlation with other predictors while having
 #   a higher correlation with the response variable.
-
-### WINE CHARACTERISTICS CROSS PLOT
-colors <- c("royalblue", "lightgoldenrod1")
-selection <- wine_reviews[, c(
-  "alcohol", "tannin", "sweetness",
-  "body", "acidity", "price_log10"
-)]
-pairs(selection, col=colors[wine_reviews$superior_rating + 1], pch = 19)
-# OBSERVATIONS:
-# * Price log 10 against all others show linear separability.
-# * Body is good predictor. Others not needed as apparently no
-#   useful mutual interactions.
-# * Interaction between price and body is important.
-selection <- wine_reviews[, c(
-  'body', 'tfidf_tsne_1', 'tfidf_tsne_2', "price_log10"
-)]
-pairs(selection, col=colors[wine_reviews$superior_rating + 1], pch = 19)
-# OBSERVATIONS:
-# * From linear separation point of view,
-#   interaction between price and tfidf_tsne_1 
-#   as well as between price and body may be important.
